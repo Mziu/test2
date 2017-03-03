@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>ES6 学习笔记</title>
+</head>
+<body>
+<div class="content">
+	<div>
+		<p> 1.let
+			<div class="desc">
+				用于声明变量,与var相似,但是作用域只在let的声明的块级作用域内
+			</div>
+		</p>
+		<p> 2.const
+			<div class="desc">
+				用来声明<span class="red">不可改变</span>的常量。
+			</div>
+		</p>
+		<p> 3.class,extends,super
+<pre>
+class Anima { // 声明 一个Animal 类
+	constructor () { // 构造函数 
+		this.type = 'annimal' 定义属性
+	}
+	says (say) { //　构造函数　定义行为方法
+		console.log(this.type + 'say' + say)
+	}
+}
+let animal = new Animal () // 实例化一个对象animal继承Animal的所有属性与方法
+animal.says('hello') // animal says hello // 调用animal继承的says方法并传入参数
+
+class Cat extends Animal { // 声明一个Cat类继承Animal 
+	constructor () {
+		super()
+		this.type = 'cat'
+	}
+}
+let cat = new Cat() // 实例化一个对象
+cat.says('hello') // cat says hello // 调用says 方法
+
+1:) extends 类与类之间继承使用 
+2:) super Cat没有自己的this对象 而是继承Animal的this对象，要想修改this.type 必须使用super，否则报错  
+3:) ES6的继承机制，实质是先创造父类的实例对象this（所以必须先调用super方法），然后再用子类的构造函数修改this。 
+</pre>
+		</p>
+		<p> 4.arrow function
+			<div class="desc">
+				Q:什么是 arrow function?
+			</div>
+<pre>
+A:箭头函数
+</pre>
+			<div  class="desc">
+				Q:有什么差别?
+			</div>
+<pre>
+function (i) { return i + 1;} // ES5 
+(i) => i + 1 // ES6
+
+function (x, y) { // ES5
+	x++;
+	y--;
+	return x + y;
+}
+(x, y) => {x++; y--; return x + y} // ES6
+
+
+</pre>
+<pre>
+class Animal {
+constructor(){
+    this.type = 'animal'
+}
+says(say){
+    setTimeout(function(){
+        console.log(this.type + ' says ' + say)
+    }, 1000)
+}
+}
+
+var animal = new Animal()
+animal.says('hi')  //undefined says hi
+</pre>
+<div class="desc">
+	解决上述问题可以有2种方法
+	第一种是将this传给self,再用self来指代this
+</div>
+<pre>
+says(say){
+	var self = this;
+	setTimeout(function(){
+	   console.log(self.type + ' says ' + say)
+}, 1000)
+</pre>
+<div class="desc">
+第二种方法是用bind(this)
+</div>
+<pre>
+says(say){
+   setTimeout(function(){
+       console.log(this.type + ' says ' + say)
+	}.bind(this), 1000)	
+}
+</pre>
+
+<div class="desc">使用 arrow function</div>
+<pre>
+class Animal {
+    constructor(){
+        this.type = 'animal'
+    }
+    says(say){
+        setTimeout( () => {
+            console.log(this.type + ' says ' + say)
+        }, 1000)
+    }
+}
+var animal = new Animal()
+animal.says('hi')  //animal says hi
+
+// 使用箭头函数时, this就相当于定义时的this 在这里指的就是custructor里的this
+// * 箭头函数本身时没有this的,他的this是继承外面的
+</pre>
+		</p>
+<div>
+	5.template string
+</div>
+		<div style="height: 600px;"></div>
+	</div>
+	<div>
+		顶顶顶
+	</div>
+</div>
+	
+	<style>
+		.content{
+			display: flex;
+			justify-content: space-between;
+		}
+		.red {
+			color: rgb(234,111,90);
+			font-weight: 600;
+		}
+		.desc {
+			text-indent: 2em;
+			font-size: 80%;
+		}
+		pre{
+			background-color: #000;
+			text-indent: 2em;
+			font-size: 80%;
+			color: #fff;
+			padding: 15px;
+			border-radius: 5px;
+			line-height: 2em;
+			font-family: 'monaco';
+			text-indent: 0;
+			box-shadow: 0px 0px 10px 1px #000;
+			/*
+				x,y,blur,spread,color
+			*/
+		}
+	</style>
+</body>
+</html>
