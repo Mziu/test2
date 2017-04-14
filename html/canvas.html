@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        canvas{
+            width: 300px;
+            height: 300px;
+            border: solid 1px red;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="mycanvas" width="300" height="300"></canvas>
+    <button value="" id="add" onclick="word.addEntity(new Yclass);">添加</button>
+</body>
+<script>
+    Class = (function(){  //基础类
+        // -----------------------------------------------------------------------------
+        // Class object based on John Resigs code; inspired by base2 and Prototype
+        // http://ejohn.org/blog/simple-javascript-inheritance/
+        var initializing = false, fnTest = /xyz/.test(function(){xyz;}) ? /\bparent\b/ : /.*/;
+        var Class = function(){};
+        Class.extend = function(prop) {
+            var parent = this.prototype;
+
+            initializing = true;
+            var prototype = new this();
+            initializing = false;
+
+            for( var name in prop ) {
+                if(
+                        typeof(prop[name]) == "function" &&
+                        typeof(parent[name]) == "function" &&
+                        fnTest.test(prop[name])
+                ) {
+                    prototype[name] = (function(name, fn){
+                        return function() {
+                            var tmp = this.parent;
+                            this.parent = parent[name];
+                            var ret = fn.apply(this, arguments);
+                            this.parent = tmp;
+                            return ret;
+                        };
+                    })( name, prop[name] );
+                }
+                else {
+                    prototype[name] = prop[name];
+                }
+            }
+            var ig = {
+                copy: function( object ) {
+                    if(
+                            !object || typeof(object) != 'object' ||
+                            object instanceof HTMLElement ||
+                                //object instanceof ig.Class
+                            object instanceof Class
+                    ) {
+                        return object;
+                    }
+                    else if( object instanceof Array ) {
+                        var c = [];
+                        for( var i = 0, l = object.length; i < l; i++) {
+                            c[i] = ig.copy(object[i]);
+                        }
+                        return c;
+                    }
+                    else {
+                        var c = {};
+                        for( var i in object ) {
+                            c[i] = ig.copy(object[i]);
+                        }
+                        return c;
+                    }
+                }
+            }
+
+            function Class() {
+                if( !initializing ) {
+
+                    // If this class has a staticInstantiate method, invoke it
+                    // and check if we got something back. If not, the normal
+                    // constructor (init) is called.
+                    if( this.staticInstantiate ) {
+                        var obj = this.staticInstantiate.apply(this, arguments);
+                        if( obj ) {
+                            return obj;
+                        }
+                    }
+                    for( var p in this ) {
+                        if( typeof(this[p]) == 'object' ) {
+                            this[p] = ig.copy(this[p]); // deep copy!
+                        }
+                    }
+                    if( this.init ) {
+                        this.init.apply(this, arguments);
+                    }
+                }
+                return this;
+            }
+
+            Class.prototype = prototype;
+            Class.constructor = Class;
+            Class.extend = arguments.callee;
+            Class.inject = function(prop) {
+                var proto = this.prototype;
+                var parent = {};
+                for( var name in prop ) {
+                    if(
+                            typeof(prop[name]) == "function" &&
+                            typeof(proto[name]) == "function" &&
+                            fnTest.test(prop[name])
+                    ) {
+                        parent[name] = proto[name]; // save original function
+                        proto[name] = (function(name, fn){
+                            return function() {
+                                var tmp = this.parent;
+                                this.parent = parent[name];
+                                var ret = fn.apply(this, arguments);
+                                this.parent = tmp;
+                                return ret;
+                            };
+                        })( name, prop[name] );
+                    }
+                    else {
+                        proto[name] = prop[name];
+                    }
+                }
+            };
+
+            return Class;
+        };
+        return Class;
+    })();
+</script>
+
+<script>
+    // 创建世界
+    var WordClass =  Class.extend({
+        ctx:null            //canvas的绘画对象
+        ,width:0
+        ,height:0
+        ,init:function(canvas, width, height){
+            this.ctx= canvas.getContext('2d');
+            this.width = width;
+            this.height = height;
+        }
+       ,update:function(){       //更新
+            for(var i =0;i<this.entities.length;i++){
+                var entity = this.entities[i];
+                entity.update();
+            }
+       }
+        ,draw:function(){       //渲染
+            //清除画板
+            this.ctx.clearRect(0,0,this.width,this.height);
+
+            //绘制所有动画对象
+            for(var i =0;i<this.entities.length;i++){
+                var entity = this.entities[i];
+                entity.draw();
+            }
+        }
+        ,start:function(){          //世界开始运行
+            var me = this;
+            setInterval(function(){
+                me.update();
+                me.draw();
+            },1000/30);
+        }
+        ,stop:function(){           //暂停世界
+
+        }
+        ,end:function(){            //停止
+
+        }
+        ,entities:[]                //世界中所有的东西
+        ,addEntity:function(entity){
+            this.entities.push(entity);
+            var rsX = Math.ceil(Math.random()*15);
+            var rsY = Math.ceil(Math.random()*15);
+            entity.x= rsX;
+            entity.y= rsY;
+            entity.veltor[0] =rsX;
+            entity.veltor[1] =rsY;
+            entity.c = '#'+('00000'+(Math.random()*0x1000000<<0).toString(16)).slice(-6);
+            entity.setWord(this);
+        }
+    });
+
+//    创建父类
+
+    var Yclass = Class.extend({
+        age:0
+        ,x:100
+        ,y:100
+        ,r:30
+        ,c:null
+        ,veltor:[1,1]
+        ,word:null
+        ,changenumber:50
+        ,init:function(c){           //初始化
+            this.age = 1;
+            this.c = c;
+        }
+        ,update:function(){
+                this.x+=this.veltor[0];
+                this.y+=this.veltor[1];
+                this.checkxy();
+                console.log(this.word.width);
+            this.changenumber--;
+            if(this.changenumber<=0){
+                this.changenumber = 30;
+                //改变矢量
+                var rand = Math.ceil(Math.random()*10)-5;
+                var rand2 = Math.ceil(Math.random()*10)-5;
+                this.veltor[0] = rand;
+                this.veltor[1] = rand2;
+            }
+        }
+        // 判断
+        ,checkxy:function(){
+            var ww = this.word.width-this.r;
+            var wh = this.word.height-this.r;
+
+            if(this.x>ww){
+                this.x=ww;
+            }
+            if(this.y>=wh){
+                this.y = wh;
+            }
+            if(this.x<this.r){
+                this.x = this.r;
+            }
+            if(this.y<this.r){
+                this.y = this.r;
+            }
+        }
+        ,draw:function(){
+            //根据当前属性画一个圆
+            var ctx = this.word.ctx;
+            ctx.beginPath();
+            ctx.strokeStyle = this.c;
+            ctx.arc(this.x,this.y,this.r,0*Math.PI,2*Math.PI);
+            ctx.stroke();
+        }
+        ,setWord:function(word){
+            this.word = word;
+        }
+    });
+</script>
+<script>
+    var word = new WordClass(document.getElementById('mycanvas'), 300, 300);
+    var y1 = new Yclass();
+    word.addEntity(y1);
+    word.start();
+</script>
+</html>
